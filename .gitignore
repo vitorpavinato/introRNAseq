@@ -1,8 +1,8 @@
 .Rproj.user/
 .DS_Store
-docs/
 introRNAseq.Rproj
 lab/data/
 lab/results/
 lab/src
 lecture/
+docs/biostar_rnaseq-by-example_chapter2-4.pdf
