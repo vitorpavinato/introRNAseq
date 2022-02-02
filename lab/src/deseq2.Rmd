@@ -1,46 +1,10 @@
-# Introduction to RNA-seq
-
-We are going to use R in our lab. For a very short introduction to R, take a look at this video from [DataCamp](https://www.youtube.com/watch?v=SWxoJqTqo08&ab_channel=DataCamp). If you are interested in dive into R a little more, I recommend going through the material in [this R crash course](https://billpetti.github.io/Crash_course_in_R/). Those materials will help you feel more comfortable with the code presented in the lab.
-
-## Installation
-For the lab, you need to install R and Rstudio. First install R (that is the language) and then install Rstudio (that is a environment, and IDE, to run R in a better interface). Follow the instructions for your computer provided in the links below.
-- [R](https://cran.r-project.org); 
-- [Rstudio](https://www.rstudio.com);
-
-Also, install the following R packages before the lab (follow the instructions provided in the package page):
-- [deseq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html);
-- [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html);
-- [limma](https://bioconductor.org/packages/release/bioc/html/limma.html);
-- [gplots](https://www.rdocumentation.org/packages/gplots/versions/3.1.1).
-
-An example how to install one of the packages (repeat the same steps for the other, making sure you copy the code from each of above links) 
-1. Open Rstudio (make sure you have R and Rstudio properly installed in your computer).
-2. Go to the command prompt (the one with ">" o the screen);
-3. Paste the command found in the link. For example for DESeq2 package:
-```dotnetcli
-if (!require("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-
-BiocManager::install("DESeq2")
-
-if (!require("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-
-BiocManager::install("edgeR")
-
-``` 
-4. Hit enter. You should see some prompts on your screen;
-5. Repeat the same for `edgeR` and `limma`; 
-6. For `gplots`, find the prompt and type:
-```dotnetcli
-install.packages("gplots")
-``` 
-7. Hit enter.
-
-If everything went well, you are ready for the lab. 
-
-# Introduction to RNAseq analysis in R with DESeq2
-
+---
+title: "Introduction to RNAseq analysis in R with DESeq2"
+author: "Vitor Pavinato"
+output:
+  html_document:
+    df_print: paged
+---
 The code for DESeq2 and heatmaps were modified from [Biostar handbook: RNAseq by example](http://www.biostarhandbook.com).
 
 This is an introduction to the analysis of RNAseq data using R. We have assumed that the count data was already produced by a pipeline. Examples on how produce count data from raw fastq reads from whole transcriptome sequence will be show in lab. There are two main ways to get count data: 1) by mapping reads to a reference genome and 2) by mapping reads to a transcriptome. 
@@ -58,7 +22,7 @@ We are going to analyze the data from the **Golden Snidget**. "The Golden Snidge
 
 Partly mechanical and fully fictitious, the Golden Snidget turns out to be the perfect candidate for RNA-Seq data analysis.
 
-<center> ![image 1](images/golden.png) </center>
+<center> ![image 1](golden.png) </center>
 
 What makes it so well suited? Two peculiar features. First, the Golden Snidget can only be in two moods:
 1. BORED when it flies nice and straight.
@@ -96,6 +60,7 @@ Load libraries
 library(DESeq2)
 library(gplots)
 ```
+
 Import the data that is located at `data/` into R by running this code below (copy and paste the code into R console):
 ```{r}
 infile = "lab/data/counts.txt"
@@ -104,9 +69,24 @@ counts = read.table(infile, header=TRUE, sep="\t", row.names=1 )
 
 **Question 1**: How many features the dataset contain?
 
+**_Answer_**: Use the command `dim()` to find out. The output is `number of rows x number of columns`.
+```{r}
+dim(counts)
+```
+
 **Question 2**: Check the first 5 rows. How many columns the dataset has? Could you see the count data for each replication?
 
+**_Answer_**: Try to use the subset operator `[]`. For example to see the first rows, type:
+```{r}
+counts[1:5, ]
+```
+
 **Question 3**: Are there transcripts from more than one strand?
+
+**_Answer_**: Try to use the `table()` function on the column that has the strand information:
+```{r}
+table(counts$Strand)
+```
 
 Run the code below to define the design matrix for the analysis.
 For this dataset, the design matrix should be 3x3 (3 replicates of condition 1 and 3 replicates of condition 2)
@@ -147,6 +127,10 @@ colData = data.frame(samples=samples, condition=condition)
 
 **Question 4**: Take a look at `colData`. How does the data is organized? What does it represent?
 
+**_Answer_**: Take a look at `colData` by typing:
+```{r}
+print(colData)
+```
 Run the code below to create the DESEq2 compatible dataset
 ```{r}
 dds = DESeqDataSetFromMatrix(countData=counts, colData=colData, design = ~condition)
@@ -333,10 +317,31 @@ cat results_deseq2.csv | egrep "UP|DOWN" | wc -l
 
 2. How many genes are **ACTUALLY** differently expressed between the two conditions? We are going to assume that differently expressed genes (DEG) are those with FDR < 0.05. This is not the only possible way to look at DEG. You can, for example, use the values in the adjusted pvalue column (PAdj).
 
+You can run this code in R to find out:
+
+```{r}
+total[which(total$FDR < 0.05), "name"]
+```
+
 3. Does all genes were correctly identified by DESeq2 as differently expressed? 
 
 3. How many DESeq2 missed? 
 
 4. Why did it happens?
 
-5. How many false positives? A false positive here is a gene that was erroneously identified as DEG. Here, it is easy to spot a false positive gene because we can count how many of genes with the tag `_SAME_` in its name on the list of genes with FDR < 0.05.
+5. How many false positives? A false positive here is a gene that was erroneously identified as DEG. Here, it is easy to spot a false positive gene because we can count how many of genes with the tag `_SAME_` in its name on the list of genes with FDR < 0.05. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
