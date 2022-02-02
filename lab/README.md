@@ -7,10 +7,12 @@ For the lab, you need to install R and Rstudio. First install R (that is the lan
 - [R](https://cran.r-project.org); 
 - [Rstudio](https://www.rstudio.com);
 
+I am aware that you would need administrative access to install Rstudio in OSU's computers if you try to install manually (download from Rstudio site.)
+However, you should be able to install if you do it through **Software Center**. Follow the instruction in [here](https://guides.osu.edu/tdai/intro) to install R and Rstudio OSU's computers. You can find the Software Center by typing it in the search bar at left bottom of Windows Desktop screen. I tried in one of our computer's lab and it worked. 
+
 Also, install the following R packages before the lab (follow the instructions provided in the package page):
 - [deseq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html);
 - [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html);
-- [limma](https://bioconductor.org/packages/release/bioc/html/limma.html);
 - [gplots](https://www.rdocumentation.org/packages/gplots/versions/3.1.1).
 
 An example how to install one of the packages (repeat the same steps for the other, making sure you copy the code from each of above links) 
