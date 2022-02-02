@@ -58,7 +58,7 @@ We are going to analyze the data from the **Golden Snidget**. "The Golden Snidge
 
 Partly mechanical and fully fictitious, the Golden Snidget turns out to be the perfect candidate for RNA-Seq data analysis.
 
-<center> ![image 1](images/golden.png) </center>
+![image 1](images/golden.png)
 
 What makes it so well suited? Two peculiar features. First, the Golden Snidget can only be in two moods:
 1. BORED when it flies nice and straight.
