@@ -18,19 +18,24 @@ Also, install the following R packages before the lab (follow the instructions p
 An example how to install one of the packages (repeat the same steps for the other, making sure you copy the code from each of above links) 
 1. Open Rstudio (make sure you have R and Rstudio properly installed in your computer).
 2. Go to the command prompt (the one with ">" o the screen);
-3. Paste the command found in the link. For example for DESeq2 package:
+3. Paste the command found in the link. 
+
+For example, for DESeq2 package, run these commands:
 ```dotnetcli
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
 BiocManager::install("DESeq2")
+```
 
+And to install edgeR package, run these commands:
+```dotnetcli
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
 BiocManager::install("edgeR")
-
 ``` 
+
 4. Hit enter. You should see some prompts on your screen;
 5. Repeat the same for `edgeR` and `limma`; 
 6. For `gplots`, find the prompt and type:
