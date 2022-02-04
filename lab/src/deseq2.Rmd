@@ -146,10 +146,29 @@ Run deseq2
 dds = DESeq(dds)
 ```
 
+Run the code below to get the **PCA Plot**
+```{r}
+rld <- rlog(dds)
+plotPCA(rld)
+```
+
 Extract the DESeq2 results
 ```{r}
 res = results(dds)
 ```
+
+Run the code below to get the **Volcano Plot**
+```{r}
+alpha <- 0.01 # Threshold on the adjusted p-value
+cols <- densCols(res$log2FoldChange, -log10(res$pvalue))
+plot(res$log2FoldChange, -log10(res$padj), col=cols, panel.first=grid(),
+     main="Volcano plot", xlab="Effect size: log2(fold-change)", ylab="-log10(adjusted p-value)",
+     pch=20, cex=0.6)
+abline(v=0)
+abline(v=c(-1,1), col="brown")
+abline(h=-log10(alpha), col="brown")
+```
+
 
 Run the code below to turn the DESeq2 results into data frames.
 ```{r}
