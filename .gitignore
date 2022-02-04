@@ -1,9 +1,10 @@
 .Rproj.user/
 .DS_Store
 introRNAseq.Rproj
+docs/biostar_rnaseq-by-example_chapter2-4.pdf
 lab/data/UCDavis_workshop_limma
 lab/results/UCDavis_workshop_limma
 lab/src/UCDavis_workshop_limma
 lab/src/biostar_handbook
-lecture/
-docs/biostar_rnaseq-by-example_chapter2-4.pdf
+lab/doc/*
+lecture/*
