@@ -8,6 +8,7 @@ Load packages
 ```{r load_packages, echo=FALSE, warning=FALSE, message=FALSE}
 library(edgeR)
 library(gplots)
+library(tidyverse)
 ```
 
 Import the data that is located at `data/` into R by running this code below (copy and paste the code into R console):
@@ -30,6 +31,29 @@ tail(anno)
 any(duplicated(anno$Exon.stable.ID))
 ```
 
+Run the code below to merge the normalized read count with the annotation table
+```{r}
+counts_annot <- merge(counts, anno, by.x=1, by.y=15, all.x = TRUE, all.y)
+counts_annot <- counts_annot[,c(1:6, 10)]
+
+counts_annot.aggr <- counts_annot %>%
+  group_by(Gene.stable.ID) %>%
+  summarise(
+    Sugar_1 = mean(sugar_1, na.rm=T),
+    Sugar_2 = mean(Sugar_2, na.rm=T),
+    Blood_1 = mean(Blood_1, na.rm=T),
+    Blood_2 = mean(Blood_2, na.rm=T)
+  )
+
+Gene_IDs <- counts_annot.aggr$Gene.stable.ID
+counts_annot.aggr <- as.matrix(counts_annot.aggr[,-c(1)])
+row.names(counts_annot.aggr) <- Gene_IDs
+head(counts_annot.aggr)
+
+counts_annot.aggr <- counts_annot.aggr[complete.cases(counts_annot.aggr), ]
+counts_annot.aggr <- counts_annot.aggr[!is.na(Gene_IDs), ]
+```
+
 Run the code below to define the design matrix for the analysis.
 For this dataset, the design matrix should be 2x2 (2 replicates of "blood" and 2 replicates of "sugar")
 ```{r}
@@ -45,7 +69,7 @@ Run the code below to keep only the count data from the input (remove the additi
 # Create the groups.
 group=c(sugar, blood)
 
-head(counts, n = 5)
+head(counts_annot.aggr, n = 5)
 ```
 
 **Question 3**: Take a look at `group`. How does the data is organized? What does it represent?
@@ -53,7 +77,7 @@ head(counts, n = 5)
 
 Creates a DGEList object from a table of counts and group.
 ```{r}
-dge0 <- DGEList(counts=counts, group=group)
+dge0 <- DGEList(counts=counts_annot.aggr, group=group)
 ```
 
 Here we will filter low-expressed genes, remove any row (gene) whose max value (for the row) is less than the cutoff (2).
@@ -101,7 +125,7 @@ Run the code below to get the normalized counts.
 scale = dge$samples$lib.size * dge$samples$norm.factors
 
 # Get the normalized counts
-normed = round(t(t(counts)/scale) * mean(scale))
+normed = round(t(t(counts_annot.aggr)/scale) * mean(scale))
 ```
 
 **Question 4**: What does it mean normalized data? Why does we care about it? Could we use the raw counts to make comparisons? Is different than the normalization already applied to the data?
@@ -177,7 +201,7 @@ total$falsePos = round(total$falsePos, 0)
 
 Run the code to export the output to `lab/results` folder.
 ```{r}
-outfile = "lab/results/results_mosquito_edger.csv"
+outfile = "lab/results/results_mosquito_edger_genes.csv"
 write.csv(total, file=outfile, row.names=FALSE, quote=FALSE)
 ```
 
@@ -202,7 +226,7 @@ MARGINS = c(9, 12)
 LHEI = c(1, 5)
 
 # Read normalized counts from the standard input
-normMatrix = "lab/results/results_mosquito_edger.csv"
+normMatrix = "lab/results/results_mosquito_edger_genes.csv"
 data = read.csv(normMatrix, header=T, as.is=TRUE)
 
 # Subset data for values under a threshold.
@@ -240,7 +264,7 @@ zscores = as.matrix(zscores)
 
 Plot
 ```{r}
-pdf("lab/results/heatmap_mosquito_edger.pdf", width = WIDTH, height = HEIGHT)
+pdf("lab/results/heatmap_mosquito_edger_genes.pdf", width = WIDTH, height = HEIGHT)
 # Set the color palette.
 col = greenred
 
@@ -261,7 +285,16 @@ Take a look at the heatmap (open the pdf at `lab/results/`)
 You can run this code in R to find out:
 
 ```{r}
-total[which(total$FDR < 0.05), "name"]
+write.csv(total[which(total$FDR < 0.05), "name"], file="lab/results/results_mosquito_edger_genes_signf_names.txt", 
+          row.names=FALSE, col.names = FALSE, quote=FALSE)
 ```
 
 2. Can you find where the differently exons came from (identify the parental gene)? **Hint:** Use the annotation file.
+
+```{r}
+names_signf_genes <- total[which(total$FDR < 0.05), "name"]
+counts_annot_sign <- counts_annot[counts_annot$Gene.stable.ID %in% names_signf_genes, ]
+
+
+write.csv(counts_annot_sign, file="lab/results/results_mosquito_edger_genes_signf_table.csv", row.names=FALSE, quote=FALSE)
+```
