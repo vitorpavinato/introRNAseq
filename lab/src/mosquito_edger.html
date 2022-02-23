@@ -210,10 +210,10 @@ dim(anno) #211488     17</code></pre>
 any(duplicated(anno$Exon.stable.ID))</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 <p>Run the code below to merge the normalized read count with the annotation table</p>
-<pre class="r"><code>counts_annot &lt;- merge(counts, anno, by.x=1, by.y=15, all.x = TRUE, all.y)
-counts_annot &lt;- counts_annot[,c(1:6, 10)]
+<pre class="r"><code>counts_anno &lt;- merge(counts, anno, by.x=1, by.y=15, all.x = TRUE, all.y)
+counts_anno &lt;- counts_anno[,c(1:6, 10)]
 
-counts_annot.aggr &lt;- counts_annot %&gt;%
+counts_anno.aggr &lt;- counts_anno %&gt;%
   group_by(Gene.stable.ID) %&gt;%
   summarise(
     Sugar_1 = mean(sugar_1, na.rm=T),
@@ -222,10 +222,10 @@ counts_annot.aggr &lt;- counts_annot %&gt;%
     Blood_2 = mean(Blood_2, na.rm=T)
   )
 
-Gene_IDs &lt;- counts_annot.aggr$Gene.stable.ID
-counts_annot.aggr &lt;- as.matrix(counts_annot.aggr[,-c(1)])
-row.names(counts_annot.aggr) &lt;- Gene_IDs
-head(counts_annot.aggr)</code></pre>
+Gene_IDs &lt;- counts_anno.aggr$Gene.stable.ID
+counts_anno.aggr &lt;- as.matrix(counts_anno.aggr[,-c(1)])
+row.names(counts_anno.aggr) &lt;- Gene_IDs
+head(counts_anno.aggr)</code></pre>
 <pre><code>##              Sugar_1    Sugar_2   Blood_1   Blood_2
 ## AAEL000001  32.00903  30.591158  31.46697  37.75220
 ## AAEL000004  38.33180  47.228455  57.21268  61.58566
@@ -233,8 +233,16 @@ head(counts_annot.aggr)</code></pre>
 ## AAEL000006  28.45247  40.251524 121.57694 120.12063
 ## AAEL000008  11.06485  10.264139  15.84076  13.75191
 ## AAEL000010 103.53538 102.507214  37.47430  32.41350</code></pre>
-<pre class="r"><code>counts_annot.aggr &lt;- counts_annot.aggr[complete.cases(counts_annot.aggr), ]
-counts_annot.aggr &lt;- counts_annot.aggr[!is.na(Gene_IDs), ]</code></pre>
+<pre class="r"><code>counts_anno.aggr &lt;- counts_anno.aggr[complete.cases(counts_anno.aggr), ]
+counts_anno.aggr &lt;- counts_anno.aggr[!is.na(Gene_IDs), ]
+head(counts_anno.aggr)</code></pre>
+<pre><code>##              Sugar_1    Sugar_2   Blood_1   Blood_2
+## AAEL000001  32.00903  30.591158  31.46697  37.75220
+## AAEL000004  38.33180  47.228455  57.21268  61.58566
+## AAEL000005  10.76087   9.660366  15.44742  13.33207
+## AAEL000006  28.45247  40.251524 121.57694 120.12063
+## AAEL000008  11.06485  10.264139  15.84076  13.75191
+## AAEL000010 103.53538 102.507214  37.47430  32.41350</code></pre>
 <p>Run the code below to define the design matrix for the analysis. For this dataset, the design matrix should be 2x2 (2 replicates of “blood” and 2 replicates of “sugar”)</p>
 <pre class="r"><code>reps1 = as.integer(2)
 reps2 = as.integer(2)
@@ -248,7 +256,7 @@ sugar = rep(&quot;sugar&quot;, reps1); print(sugar)</code></pre>
 <pre class="r"><code># Create the groups.
 group=c(sugar, blood)
 
-head(counts_annot.aggr, n = 5)</code></pre>
+head(counts_anno.aggr, n = 5)</code></pre>
 <pre><code>##             Sugar_1   Sugar_2   Blood_1   Blood_2
 ## AAEL000001 32.00903 30.591158  31.46697  37.75220
 ## AAEL000004 38.33180 47.228455  57.21268  61.58566
@@ -260,7 +268,7 @@ head(counts_annot.aggr, n = 5)</code></pre>
 <pre class="r"><code>print(group)</code></pre>
 <pre><code>## [1] &quot;sugar&quot; &quot;sugar&quot; &quot;blood&quot; &quot;blood&quot;</code></pre>
 <p>Creates a DGEList object from a table of counts and group.</p>
-<pre class="r"><code>dge0 &lt;- DGEList(counts=counts_annot.aggr, group=group)</code></pre>
+<pre class="r"><code>dge0 &lt;- DGEList(counts=counts_anno.aggr, group=group)</code></pre>
 <p>Here we will filter low-expressed genes, remove any row (gene) whose max value (for the row) is less than the cutoff (2).</p>
 <pre class="r"><code>cutoff &lt;- 2
 drop &lt;- which(apply(cpm(dge0), 1, max) &lt; cutoff)
@@ -300,7 +308,7 @@ abline(h=-log10(alpha), col=&quot;brown&quot;)</code></pre>
 scale = dge$samples$lib.size * dge$samples$norm.factors
 
 # Get the normalized counts
-normed = round(t(t(counts_annot.aggr)/scale) * mean(scale))</code></pre>
+normed = round(t(t(counts_anno.aggr)/scale) * mean(scale))</code></pre>
 <p><strong>Question 4</strong>: What does it mean normalized data? Why does we care about it? Could we use the raw counts to make comparisons? Is different than the normalization already applied to the data?</p>
 <p>Run the code below to turn the edgeR results into data frames.</p>
 <pre class="r"><code># Select the edger result dataframe.
@@ -437,19 +445,74 @@ dev.off()</code></pre>
 <li>How many genes are <strong>ACTUALLY</strong> differently expressed between the two conditions? We are going to assume that differently expressed genes (DEG) are those with FDR &lt; 0.05. This is not the only possible way to look at DEG. You can, for example, use the values in the adjusted pvalue column (PAdj).</li>
 </ol>
 <p>You can run this code in R to find out:</p>
-<pre class="r"><code>write.csv(total[which(total$FDR &lt; 0.05), &quot;name&quot;], file=&quot;lab/results/results_mosquito_edger_genes_signf_names.txt&quot;, 
+<pre class="r"><code>write.table(total[which(total$FDR &lt; 0.05), &quot;name&quot;], file=&quot;lab/results/results_mosquito_edger_genes_signf_names.txt&quot;, 
           row.names=FALSE, col.names = FALSE, quote=FALSE)</code></pre>
-<pre><code>## Warning in write.csv(total[which(total$FDR &lt; 0.05), &quot;name&quot;], file = &quot;lab/
-## results/results_mosquito_edger_genes_signf_names.txt&quot;, : attempt to set
-## &#39;col.names&#39; ignored</code></pre>
+<p>How about only significant DEG but upper-regulated in sugar-fed mosquito?</p>
+<pre class="r"><code>write.table(total[which(total$FDR &lt; 0.05 &amp; total$log2FoldChange &gt; 0), &quot;name&quot;], file=&quot;lab/results/results_mosquito_edger_genes_signf_upper_names.txt&quot;, 
+          row.names=FALSE, col.names = FALSE, quote=FALSE)</code></pre>
+<p>How about only significant DEG but down-regulated in sugar-fed mosquito?</p>
+<pre class="r"><code>write.table(total[which(total$FDR &lt; 0.05 &amp; total$log2FoldChange &lt; 0), &quot;name&quot;], file=&quot;lab/results/results_mosquito_edger_genes_signf_down_names.txt&quot;, 
+          row.names=FALSE, col.names = FALSE, quote=FALSE)</code></pre>
 <ol start="2" style="list-style-type: decimal">
-<li>Can you find where the differently exons came from (identify the parental gene)? <strong>Hint:</strong> Use the annotation file.</li>
+<li>Can you find where the information about DE genes? <strong>Hint:</strong> Use the annotation file.</li>
 </ol>
-<pre class="r"><code>names_signf_genes &lt;- total[which(total$FDR &lt; 0.05), &quot;name&quot;]
-counts_annot_sign &lt;- counts_annot[counts_annot$Gene.stable.ID %in% names_signf_genes, ]
+<pre class="r"><code>#names_signf_genes &lt;- total[which(total$FDR &lt; 0.05), &quot;name&quot;]
+#counts_anno_sign &lt;- counts_anno[counts_anno$Gene.stable.ID %in% names_signf_genes, ]
+
+counts_anno_geneIDs &lt;- counts_anno[,c(6,7)]
+counts_anno_geneIDs &lt;- counts_anno_geneIDs %&gt;% distinct()
+
+total_anno &lt;- merge(total, counts_anno_geneIDs, by.x=&#39;name&#39;, by.y=&quot;Gene.stable.ID&quot;, sort = FALSE)
 
 
-write.csv(counts_annot_sign, file=&quot;lab/results/results_mosquito_edger_genes_signf_table.csv&quot;, row.names=FALSE, quote=FALSE)</code></pre>
+
+write.csv(total_anno[which(total_anno$FDR &lt; 0.05), ], 
+          file=&quot;lab/results/results_mosquito_edger_genes_signf_table.csv&quot;, 
+          row.names=FALSE, quote=FALSE)</code></pre>
+<p>How about the information of upper-regulated genes in mosquito fed with sugar?</p>
+<pre class="r"><code>write.csv(total_anno[which(total_anno$FDR &lt; 0.05 &amp; total_anno$log2FoldChange &gt; 0), ], 
+          file=&quot;lab/results/results_mosquito_edger_genes_signf_upper_table.csv&quot;, 
+          row.names=FALSE, quote=FALSE)</code></pre>
+<p>And about the information of down-regulated genes in mosquito fed with sugar?</p>
+<pre class="r"><code>write.csv(total_anno[which(total_anno$FDR &lt; 0.05 &amp; total_anno$log2FoldChange &lt; 0), ], 
+          file=&quot;lab/results/results_mosquito_edger_genes_signf_down_table.csv&quot;, 
+          row.names=FALSE, quote=FALSE)</code></pre>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>## R version 4.1.2 (2021-11-01)
+## Platform: x86_64-apple-darwin17.0 (64-bit)
+## Running under: macOS Catalina 10.15.7
+## 
+## Matrix products: default
+## BLAS:   /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRblas.0.dylib
+## LAPACK: /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRlapack.dylib
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+##  [1] forcats_0.5.1   stringr_1.4.0   dplyr_1.0.8     purrr_0.3.4    
+##  [5] readr_2.1.2     tidyr_1.2.0     tibble_3.1.6    ggplot2_3.3.5  
+##  [9] tidyverse_1.3.1 gplots_3.1.1    edgeR_3.36.0    limma_3.50.1   
+## 
+## loaded via a namespace (and not attached):
+##  [1] Rcpp_1.0.8         locfit_1.5-9.4     lubridate_1.8.0    lattice_0.20-45   
+##  [5] gtools_3.9.2       assertthat_0.2.1   digest_0.6.29      utf8_1.2.2        
+##  [9] R6_2.5.1           cellranger_1.1.0   backports_1.4.1    reprex_2.0.1      
+## [13] evaluate_0.15      highr_0.9          httr_1.4.2         pillar_1.7.0      
+## [17] rlang_1.0.1        readxl_1.3.1       rstudioapi_0.13    jquerylib_0.1.4   
+## [21] rmarkdown_2.11     munsell_0.5.0      broom_0.7.12       compiler_4.1.2    
+## [25] modelr_0.1.8       xfun_0.29          pkgconfig_2.0.3    htmltools_0.5.2   
+## [29] tidyselect_1.1.2   fansi_1.0.2        withr_2.4.3        crayon_1.5.0      
+## [33] tzdb_0.2.0         dbplyr_2.1.1       bitops_1.0-7       grid_4.1.2        
+## [37] jsonlite_1.8.0     gtable_0.3.0       lifecycle_1.0.1    DBI_1.1.2         
+## [41] magrittr_2.0.2     scales_1.1.1       KernSmooth_2.23-20 cli_3.2.0         
+## [45] stringi_1.7.6      fs_1.5.2           xml2_1.3.3         ellipsis_0.3.2    
+## [49] generics_0.1.2     vctrs_0.3.8        tools_4.1.2        glue_1.6.1        
+## [53] hms_1.1.1          fastmap_1.1.0      yaml_2.3.5         colorspace_2.0-3  
+## [57] caTools_1.18.2     rvest_1.0.2        knitr_1.37         haven_2.4.3</code></pre>
 
 
 

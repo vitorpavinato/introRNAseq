@@ -6,5 +6,5 @@ lab/data/UCDavis_workshop_limma
 lab/results/UCDavis_workshop_limma
 lab/src/UCDavis_workshop_limma
 lab/src/biostar_handbook
-lab/doc/*
-lecture/*
+lab/doc/introRNAseq_lab.key
+lecture/doc/introRNAseq_lecture.key
