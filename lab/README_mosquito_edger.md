@@ -33,10 +33,10 @@ any(duplicated(anno$Exon.stable.ID))
 
 Run the code below to merge the normalized read count with the annotation table
 ```{r}
-counts_annot <- merge(counts, anno, by.x=1, by.y=15, all.x = TRUE, all.y)
-counts_annot <- counts_annot[,c(1:6, 10)]
+counts_anno <- merge(counts, anno, by.x=1, by.y=15, all.x = TRUE, all.y)
+counts_anno <- counts_anno[,c(1:6, 10)]
 
-counts_annot.aggr <- counts_annot %>%
+counts_anno.aggr <- counts_anno %>%
   group_by(Gene.stable.ID) %>%
   summarise(
     Sugar_1 = mean(sugar_1, na.rm=T),
@@ -45,13 +45,14 @@ counts_annot.aggr <- counts_annot %>%
     Blood_2 = mean(Blood_2, na.rm=T)
   )
 
-Gene_IDs <- counts_annot.aggr$Gene.stable.ID
-counts_annot.aggr <- as.matrix(counts_annot.aggr[,-c(1)])
-row.names(counts_annot.aggr) <- Gene_IDs
-head(counts_annot.aggr)
+Gene_IDs <- counts_anno.aggr$Gene.stable.ID
+counts_anno.aggr <- as.matrix(counts_anno.aggr[,-c(1)])
+row.names(counts_anno.aggr) <- Gene_IDs
+head(counts_anno.aggr)
 
-counts_annot.aggr <- counts_annot.aggr[complete.cases(counts_annot.aggr), ]
-counts_annot.aggr <- counts_annot.aggr[!is.na(Gene_IDs), ]
+counts_anno.aggr <- counts_anno.aggr[complete.cases(counts_anno.aggr), ]
+counts_anno.aggr <- counts_anno.aggr[!is.na(Gene_IDs), ]
+head(counts_anno.aggr)
 ```
 
 Run the code below to define the design matrix for the analysis.
@@ -285,16 +286,49 @@ Take a look at the heatmap (open the pdf at `lab/results/`)
 You can run this code in R to find out:
 
 ```{r}
-write.csv(total[which(total$FDR < 0.05), "name"], file="lab/results/results_mosquito_edger_genes_signf_names.txt", 
+write.table(total[which(total$FDR < 0.05), "name"], file="lab/results/results_mosquito_edger_genes_signf_names.txt", 
+          row.names=FALSE, col.names = FALSE, quote=FALSE)
+```
+How about only significant DEG but upper-regulated in sugar-fed mosquito?
+```{r}
+write.table(total[which(total$FDR < 0.05 & total$log2FoldChange > 0), "name"], file="lab/results/results_mosquito_edger_genes_signf_upper_names.txt", 
+          row.names=FALSE, col.names = FALSE, quote=FALSE)
+```
+
+How about only significant DEG but down-regulated in sugar-fed mosquito?
+```{r}
+write.table(total[which(total$FDR < 0.05 & total$log2FoldChange < 0), "name"], file="lab/results/results_mosquito_edger_genes_signf_down_names.txt", 
           row.names=FALSE, col.names = FALSE, quote=FALSE)
 ```
 
 2. Can you find where the differently exons came from (identify the parental gene)? **Hint:** Use the annotation file.
 
 ```{r}
-names_signf_genes <- total[which(total$FDR < 0.05), "name"]
-counts_annot_sign <- counts_annot[counts_annot$Gene.stable.ID %in% names_signf_genes, ]
+counts_anno_geneIDs <- counts_anno[,c(6,7)]
+counts_anno_geneIDs <- counts_anno_geneIDs %>% distinct()
+
+total_anno <- merge(total, counts_anno_geneIDs, by.x='name', by.y="Gene.stable.ID", sort = FALSE)
 
 
-write.csv(counts_annot_sign, file="lab/results/results_mosquito_edger_genes_signf_table.csv", row.names=FALSE, quote=FALSE)
+
+write.csv(total_anno[which(total_anno$FDR < 0.05), ], 
+          file="lab/results/results_mosquito_edger_genes_signf_table.csv", 
+          row.names=FALSE, quote=FALSE)
+```
+How about the information of upper-regulated genes in mosquito fed with sugar?
+```{r}
+write.csv(total_anno[which(total_anno$FDR < 0.05 & total_anno$log2FoldChange > 0), ], 
+          file="lab/results/results_mosquito_edger_genes_signf_upper_table.csv", 
+          row.names=FALSE, quote=FALSE)
+```
+
+And about the information of down-regulated genes in mosquito fed with sugar?
+```{r}
+write.csv(total_anno[which(total_anno$FDR < 0.05 & total_anno$log2FoldChange < 0), ], 
+          file="lab/results/results_mosquito_edger_genes_signf_down_table.csv", 
+          row.names=FALSE, quote=FALSE)
+```
+
+```{r}
+sessionInfo()
 ```
